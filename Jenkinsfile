@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Build and Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'lostthemoment', passwordVariable: 'dckr_pat_812FSOwOSVT4H0Niy7Fh5OAubOM')]) {
                     bat """
                         docker login -u %DOCKER_USER% -p %DOCKER_PASS%
                         docker build -t %DOCKER_USER%/myapp:latest .
