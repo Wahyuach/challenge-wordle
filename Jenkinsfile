@@ -1,29 +1,14 @@
 pipeline {
     agent any
     stages {
-        stage('Checkout') {
+        stage('Build and Push Docker Image') {
             steps {
-                git branch: 'main', url: 'https://github.com/Wahyuach/challenge-wordle.git'
-            }
-        }
-        stage('Build') {
-            steps {
-                script {
-                    dockerImage = docker.build("your-org/your-app:${env.BUILD_NUMBER}")
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'docker run --rm your-org/your-app:${env.BUILD_NUMBER} ./run-tests.sh'
-            }
-        }
-        stage('Push') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        dockerImage.push()
-                    }
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'lostthemoment', passwordVariable: 'dckr_pat_812FSOwOSVT4H0Niy7Fh5OAubOM')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker build -t $DOCKER_USER/myapp:latest .
+                        docker push $DOCKER_USER/myapp:latest
+                    '''
                 }
             }
         }
