@@ -17,12 +17,9 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: "DOCKER_USERNAME", passwordVariable: "DOCKER_PASSWORD")]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        powershell """
-                        echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-                        echo "Docker login completed."
-                        """
+                         bat """docker login -u %USER% -p %PASS%"""
                     }
                 }
             }
@@ -32,7 +29,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        powershell """
+                        bat """
                         docker pull ${IMAGE_NAME}
                         """
                     } catch (Exception e) {
@@ -45,7 +42,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    powershell """
+                    bat """
                     if (!(docker images ${IMAGE_NAME} | Select-String -Pattern ${IMAGE_NAME})) {
                         echo 'Image tidak ditemukan, membangun image...'
                         docker build -t ${IMAGE_NAME} .
@@ -60,7 +57,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    powershell """
+                    bat """
                     docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
                     docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
                     """
@@ -80,7 +77,7 @@ pipeline {
     post {
         always {
             script {
-                powershell """
+                bat """
                 docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
                 docker rmi ${IMAGE_NAME} ; if (\$?) { echo 'No image to remove' }
                 """
