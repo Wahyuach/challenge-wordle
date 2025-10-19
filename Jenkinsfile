@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // Mendefinisikan variabel untuk image Docker dan container
         IMAGE_NAME = "myapp"
         CONTAINER_NAME = "myapp_container"
-        PORT = "8080"
+        PORT = "8081"
+        DOCKER_CREDENTIALS = 'docker-creds'  // Gantilah dengan ID kredensial Docker yang sesuai
     }
 
     stages {
@@ -16,16 +16,25 @@ pipeline {
             }
         }
 
+        stage('Docker Login') {
+            steps {
+                script {
+                    // Login ke Docker Hub dengan kredensial
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh "echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin"
+                    }
+                }
+            }
+        }
+
         stage('Pull Docker Image') {
             steps {
-                // Menarik image Docker dari Docker Hub (Opsional jika Anda ingin menggunakan image yang ada)
                 script {
+                    // Pull image jika belum ada di local
                     try {
-                        powershell """
-                        docker pull ${IMAGE_NAME}
-                        """
+                        sh "docker pull ${IMAGE_NAME}"
                     } catch (Exception e) {
-                        echo "Image tidak ditemukan, lanjutkan dengan build"
+                        echo "Image tidak ditemukan di Docker Hub, lanjutkan dengan build."
                     }
                 }
             }
@@ -33,10 +42,15 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Membangun Docker image dari Dockerfile yang ada
                 script {
-                    powershell """
-                    docker build -t ${IMAGE_NAME} .
+                    // Jika image tidak ada, maka bangun image dari Dockerfile
+                    sh """
+                    if ! docker images ${IMAGE_NAME} | grep -q ${IMAGE_NAME}; then
+                        echo 'Image tidak ditemukan, membangun image...'
+                        docker build -t ${IMAGE_NAME} .
+                    else
+                        echo 'Image sudah ada, melewati build.'
+                    fi
                     """
                 }
             }
@@ -44,12 +58,11 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                // Menjalankan Docker container
                 script {
-                    // Cek jika container dengan nama yang sama sudah ada dan hapus jika ada
-                    powershell """
-                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
-                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${IMAGE_NAME}
+                    // Jalankan container dari image yang sudah ada
+                    sh """
+                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | grep -q . && docker rm -f ${CONTAINER_NAME}
+                    docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
                     """
                 }
             }
@@ -57,8 +70,8 @@ pipeline {
 
         stage('Get Docker Container Link') {
             steps {
-                // Menampilkan link akses container
                 script {
+                    // Menampilkan link akses container
                     echo "Akses aplikasi di: http://localhost:${PORT}"
                 }
             }
@@ -67,11 +80,11 @@ pipeline {
 
     post {
         always {
-            // Bersihkan docker image dan container setelah pipeline selesai
             script {
-                powershell """
-                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
-                docker rmi ${IMAGE_NAME} ; if (\$?) { echo 'No image to remove' }
+                // Bersihkan Docker container dan image setelah pipeline selesai
+                sh """
+                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | grep -q . && docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
+                docker rmi ${IMAGE_NAME} || echo 'No image to remove'
                 """
             }
         }
