@@ -20,7 +20,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: "DOCKER_USERNAME", passwordVariable: "DOCKER_PASSWORD")]) {
                     script {
                         powershell """
-                        echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USERNAME} --password-stdin
+                        echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
                         echo "Docker login completed."
                         """
                     }
