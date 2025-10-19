@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     script {
                         powershell """
                         echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USERNAME} --password-stdin
