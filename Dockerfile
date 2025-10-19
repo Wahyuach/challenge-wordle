@@ -1,11 +1,11 @@
-# Menggunakan image Nginx berbasis Alpine Linux untuk ukuran yang lebih kecil
+# Gunakan image Nginx sebagai base image
 FROM nginx:alpine
 
-# Menyalin semua file dari direktori lokal ke dalam container pada path yang digunakan oleh Nginx untuk file HTML
-COPY . /usr/share/nginx/html
+# Menyalin file statis (HTML, CSS, JS) ke dalam direktori yang digunakan oleh Nginx
+COPY ./html /usr/share/nginx/html
 
-# Expose port 80 untuk akses HTTP
-EXPOSE 8081
+# Menyediakan port 80 untuk mengakses aplikasi
+EXPOSE 80
 
 # Menjalankan Nginx di foreground
 CMD ["nginx", "-g", "daemon off;"]
