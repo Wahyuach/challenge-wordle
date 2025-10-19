@@ -21,7 +21,9 @@ pipeline {
                 script {
                     // Login ke Docker Hub dengan kredensial
                     withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh "echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin"
+                        powershell """
+                        echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+                        """
                     }
                 }
             }
@@ -32,7 +34,9 @@ pipeline {
                 script {
                     // Pull image jika belum ada di local
                     try {
-                        sh "docker pull ${IMAGE_NAME}"
+                        powershell """
+                        docker pull ${IMAGE_NAME}
+                        """
                     } catch (Exception e) {
                         echo "Image tidak ditemukan di Docker Hub, lanjutkan dengan build."
                     }
@@ -44,13 +48,13 @@ pipeline {
             steps {
                 script {
                     // Jika image tidak ada, maka bangun image dari Dockerfile
-                    sh """
-                    if ! docker images ${IMAGE_NAME} | grep -q ${IMAGE_NAME}; then
+                    powershell """
+                    if (!(docker images ${IMAGE_NAME} | Select-String -Pattern ${IMAGE_NAME})) {
                         echo 'Image tidak ditemukan, membangun image...'
                         docker build -t ${IMAGE_NAME} .
-                    else
+                    } else {
                         echo 'Image sudah ada, melewati build.'
-                    fi
+                    }
                     """
                 }
             }
@@ -60,8 +64,8 @@ pipeline {
             steps {
                 script {
                     // Jalankan container dari image yang sudah ada
-                    sh """
-                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | grep -q . && docker rm -f ${CONTAINER_NAME}
+                    powershell """
+                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
                     docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
                     """
                 }
@@ -81,10 +85,9 @@ pipeline {
     post {
         always {
             script {
-                // Bersihkan Docker container dan image setelah pipeline selesai
-                sh """
-                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | grep -q . && docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
-                docker rmi ${IMAGE_NAME} || echo 'No image to remove'
+                powershell """
+                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
+                docker rmi ${IMAGE_NAME} ; if (\$?) { echo 'No image to remove' }
                 """
             }
         }
