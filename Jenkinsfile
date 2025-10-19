@@ -19,7 +19,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                         bat """docker login -u %USER% -p %PASS%"""
+                        bat ""'docker login -u %USER% -p %PASS%'""
                     }
                 }
             }
@@ -48,11 +48,11 @@ pipeline {
                         docker build -t ${IMAGE_NAME} .
                     } else {
                         echo 'Image sudah ada, melewati build.'
-                    }
-                    """
                 }
+                    """
             }
         }
+    }
 
         stage('Run Docker Container') {
             steps {
@@ -72,7 +72,7 @@ pipeline {
                 }
             }
         }
-    }
+}
 
     post {
         always {
