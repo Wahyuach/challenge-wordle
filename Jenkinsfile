@@ -71,4 +71,9 @@ pipeline {
             script {
                 powershell """
                 docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' && docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME} || echo 'No container to stop'
-                docker
+                docker rmi ${IMAGE_NAME} || echo 'No image to remove'
+                """
+            }
+        }
+    }
+}
