@@ -49,7 +49,7 @@ pipeline {
                     // Cek jika container dengan nama yang sama sudah ada dan hapus jika ada
                     powershell """
                     docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
-                    docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
+                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${IMAGE_NAME}
                     """
                 }
             }
