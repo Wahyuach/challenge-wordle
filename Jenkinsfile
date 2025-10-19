@@ -20,10 +20,9 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    // Login ke Docker Hub dengan username dan password manual
+                    // Login ke Docker Hub dengan username terlebih dahulu, lalu echo password
                     powershell """
-                    docker login --username ${DOCKER_USERNAME} --password-stdin
-                    echo "${DOCKER_PASSWORD}"
+                    docker login --username ${DOCKER_USERNAME} --password-stdin <<< "${DOCKER_PASSWORD}"
                     """
                 }
             }
