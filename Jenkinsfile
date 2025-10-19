@@ -8,6 +8,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                // Checkout kode dari repository GitHub
+                git branch: 'main', url: 'https://github.com/Wahyuach/challenge-wordle.git'
+            }
+        }
+        
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
