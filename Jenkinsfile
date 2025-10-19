@@ -87,8 +87,8 @@ pipeline {
                 docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
                 docker rmi ${IMAGE_NAME} ; if (\$?) { echo 'No image to remove' }
                 """
+                }   
             }
         }
     }
-}
 }
