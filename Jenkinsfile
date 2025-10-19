@@ -5,7 +5,8 @@ pipeline {
         IMAGE_NAME = "myapp"
         CONTAINER_NAME = "myapp_container"
         PORT = "8081"
-        DOCKER_CREDENTIALS = 'docker-creds'  // Gantilah dengan ID kredensial Docker yang sesuai
+        DOCKER_USERNAME = "lostthemoment"  // Ganti dengan Docker Hub username
+        DOCKER_PASSWORD = "dckr_pat_IH_Xx8IAjE4jJWuHUUWuizXncyM"  // Ganti dengan Docker Hub password atau token
     }
 
     stages {
@@ -19,12 +20,10 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    // Login ke Docker Hub dengan kredensial
-                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        powershell """
-                        echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-                        """
-                    }
+                    // Login ke Docker Hub dengan username dan password manual
+                    powershell """
+                    docker login --username ${DOCKER_USERNAME} --password-stdin <<< "${DOCKER_PASSWORD}"
+                    """
                 }
             }
         }
