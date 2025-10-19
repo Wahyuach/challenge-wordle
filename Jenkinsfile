@@ -22,7 +22,8 @@ pipeline {
                 script {
                     // Login ke Docker Hub dengan username dan password manual
                     powershell """
-                    docker login --username ${DOCKER_USERNAME} --password-stdin <<< "${DOCKER_PASSWORD}"
+                    docker login --username ${DOCKER_USERNAME} --password-stdin
+                    echo "${DOCKER_PASSWORD}"
                     """
                 }
             }
