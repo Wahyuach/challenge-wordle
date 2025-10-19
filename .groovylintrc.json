@@ -4,6 +4,9 @@
         "CatchException": {
             "enabled": false
         },
+        "LineLength": {
+            "enabled": false
+        },
         "NestedBlockDepth": {
             "enabled": false
         }
