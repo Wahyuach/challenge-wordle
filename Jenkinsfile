@@ -14,10 +14,10 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Wahyuach/challenge-wordle.git'
             }
         }
-        
+
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     script {
                         powershell """
                         echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USERNAME} --password-stdin
