@@ -48,7 +48,7 @@ pipeline {
                 script {
                     // Cek jika container dengan nama yang sama sudah ada dan hapus jika ada
                     powershell """
-                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' && docker rm -f ${CONTAINER_NAME} || echo 'No existing container found'
+                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
                     docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
                     """
                 }
@@ -70,8 +70,8 @@ pipeline {
             // Bersihkan docker image dan container setelah pipeline selesai
             script {
                 powershell """
-                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' && docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME} || echo 'No container to stop'
-                docker rmi ${IMAGE_NAME} || echo 'No image to remove'
+                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
+                docker rmi ${IMAGE_NAME} ; if (\$?) { echo 'No image to remove' }
                 """
             }
         }
