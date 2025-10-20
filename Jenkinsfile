@@ -19,11 +19,11 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     script {
-                        // Login ke Docker Hub dengan kredensial yang aman
-                        powershell """
-                        docker login --username ${DOCKER_USERNAME} --password-stdin
-                        echo "Docker login completed."
-                        """
+                        echo 'Docker login started...'
+                        bat """
+                    echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USERNAME} --password-stdin
+                    echo "Docker login completed."
+                    """
                     }
                 }
             }
