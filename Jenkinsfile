@@ -21,7 +21,7 @@ pipeline {
                     script {
                         // Login ke Docker Hub dengan kredensial yang aman
                         powershell """
-            q           docker login --username ${DOCKER_USERNAME} --password-stdin
+                        docker login --username ${DOCKER_USERNAME} --password-stdin
                         echo "Docker login completed."
                         """
                     }
