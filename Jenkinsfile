@@ -15,16 +15,6 @@ pipeline {
             }
         }
 
-        stage('Docker Login') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    script {
-                        bat ""'docker login -u %USER% -p %PASS%'""
-                    }
-                }
-            }
-        }
-
         stage('Pull Docker Image') {
             steps {
                 script {
