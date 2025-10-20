@@ -5,7 +5,7 @@ FROM nginx:alpine
 COPY ./html /usr/share/nginx/html
 
 # Menyediakan port 80 untuk mengakses aplikasi
-EXPOSE 80
+EXPOSE 8081
 
 # Menjalankan Nginx di foreground
 CMD ["nginx", "-g", "daemon off;"]
