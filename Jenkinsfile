@@ -15,11 +15,26 @@ pipeline {
             }
         }
 
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-login', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    script {
+                        // Login ke Docker Hub dengan kredensial yang aman
+                        powershell """
+            q           docker login --username ${DOCKER_USERNAME} --password-stdin
+                        echo "Docker login completed."
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Pull Docker Image') {
             steps {
                 script {
+                    // Pull image jika belum ada di local
                     try {
-                        bat """
+                        powershell """
                         docker pull ${IMAGE_NAME}
                         """
                     } catch (Exception e) {
@@ -32,23 +47,26 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat """
-                    if (!(docker images ${IMAGE_NAME} | Select-String -Pattern ${IMAGE_NAME})) {
+                    // Jika image tidak ada, maka bangun image dari Dockerfile
+                    powershell """
+                    docker images ${IMAGE_NAME} | findstr ${IMAGE_NAME} > nul
+                    if errorlevel 1 (
                         echo 'Image tidak ditemukan, membangun image...'
                         docker build -t ${IMAGE_NAME} .
-                    } else {
+                    ) else (
                         echo 'Image sudah ada, melewati build.'
-                }
+                    )
                     """
+                }
             }
         }
-    }
 
         stage('Run Docker Container') {
             steps {
                 script {
-                    bat """
-                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | Select-String -Pattern '.*' ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
+                    // Jalankan container dari image yang sudah ada
+                    powershell """
+                    docker ps -a -q --filter "name=${CONTAINER_NAME}" | findstr ${CONTAINER_NAME} > nul ; if (\$?) { docker rm -f ${CONTAINER_NAME} }
                     docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}
                     """
                 }
@@ -62,13 +80,13 @@ pipeline {
                 }
             }
         }
-}
+    }
 
     post {
         always {
             script {
-                bat """
-                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | Select-String -Pattern '.*' ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
+                powershell """
+                docker ps -a -q --filter 'name=${CONTAINER_NAME}' | findstr ${CONTAINER_NAME} > nul ; if (\$?) { docker stop ${CONTAINER_NAME} ; docker rm ${CONTAINER_NAME} }
                 docker rmi ${IMAGE_NAME} ; if (\$?) { echo 'No image to remove' }
                 """
             }
